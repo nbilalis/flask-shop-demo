@@ -1,5 +1,8 @@
-from flask import Flask, render_template
+from flask import Flask, render_template, g
 from os import environ
+import locale
+
+from products_service import get_all_products, get_category, get_all_categories
 
 app = Flask(__name__)
 
@@ -14,6 +17,19 @@ def home():
     )
 
 
+@app.route('/products/<category_id>')
+def product_list(category_id):
+    category = get_category(category_id, get_all_categories())
+    products = get_all_products()
+    app.logger.debug(category)
+    app.logger.debug(products)
+    return render_template('products/list.html', category=category, products=products)
+
+
+@app.errorhandler(404)
+def page_not_found(e):
+    app.logger.debug(e)
+    return render_template('errors/404.html'), 404
 
 
 @app.before_request
