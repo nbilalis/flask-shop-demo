@@ -1,3 +1,7 @@
+{% macro lorem_space_url(w, h, cat='fashion') -%}
+    https://api.lorem.space/image/{{ cat }}?w={{ w }}&h={{ h }}&hash={{ '%0x' % (range(1000, 10000) | random) }}
+{%- endmacro %}
+
 {% macro lorem_space_image(w, h, cat='fashion', alt='img') %}
-    <img src="https://api.lorem.space/image/{{ cat }}?w={{ w }}&h={{ h }}&hash={{ '%0x' % (range(1000, 10000) | random) }}" alt="{{ alt }}">
+    <img src="{{ lorem_space_url(w, h, cat) }}" alt="{{ alt }}">
 {% endmacro %}
