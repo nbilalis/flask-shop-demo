@@ -16,6 +16,16 @@ def home():
 
 
 
+@app.before_request
+def store_stuff_in_g():
+    """
+    Executes before *every* request
+    g is a global object to store stuff for a *single* request
+    """
+    g.products = get_all_products()
+    g.categories = get_all_categories()
+
+
 @app.template_filter('currency')
 def format_currency(value):
     locale.setlocale(locale.LC_ALL, 'el_GR')
