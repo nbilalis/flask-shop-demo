@@ -1,13 +1,13 @@
 {% from "_image.html" import lorem_space_image %}
 
 <figure>
-  <a class="aa-product-img" href="#">
-    {{ lorem_space_image(250, 300, category if category else 'fashion', product.title) }}
+  <a class="aa-product-img" href="{{ url_for('product_details', category_id=category.id, product_id=product.id) }}">
+    {{ lorem_space_image(250, 300, topic if topic else 'fashion', product.title) }}
   </a>
   <a class="aa-add-card-btn"href="#"><span class="fa fa-shopping-cart"></span>Add To Cart</a>
   <figcaption>
     <h4 class="aa-product-title">
-      <a href="#">{{ product['title'] }}</a>
+      <a href="{{ url_for('product_details', category_id=category.id, product_id=product.id) }}">{{ product['title'] }}</a>
     </h4>
     <span class="aa-product-price">${{ (product['price'] * (1 - product['discount_ratio'])) | currency }}</span>
     {% if product['discount_ratio'] > 0 %}

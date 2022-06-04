@@ -9,7 +9,7 @@
 {% block main %}
   <!-- catg header banner section -->
   <section id="aa-catg-head-banner">
-    <img src="img/fashion/fashion-header-bg-8.jpg" alt="fashion img">
+    {{ lorem_space_image(1920, 300, alt="fashion img") }}
     <div class="aa-catg-head-banner-area">
       <div class="container">
         <div class="aa-catg-head-banner-content">
@@ -18,7 +18,7 @@
             <li>
               <a href="index.html">Home</a>
             </li>
-            <li class="active">Women</li>
+            <li class="active">{{ category.title }}</li>
           </ol>
         </div>
       </div>
@@ -75,9 +75,7 @@
                 {% for product in products %}
                   <!-- start single product item -->
                   <li>
-                    {% with category='fashion' %}
-                      {% include "products/_card.html" %}
-                    {% endwith %}
+                    {% include "products/_card.html" %}
                   </li>
                 {% endfor %}
               </ul>
