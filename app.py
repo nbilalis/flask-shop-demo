@@ -87,6 +87,34 @@ def get_product_json(product_id):
     return get_product(product_id)
 
 
+""" @app.teardown_request
+def close_connection(ctx):
+    '''
+    Close connection on request teardown
+     '''
+    if hasattr(g, 'conn'):
+        app.logger.debug('» Teardown Request')
+        app.logger.debug('» Connection closed')
+        g.conn.close() """
+
+
+@app.teardown_appcontext
+def close_connection(err):
+    '''
+    Close the connection to the DB.
+    The `teardown_appcontext` decorator with ensure
+    that this function gets called at the end of each request,
+    even when an exception is raised.
+    '''
+    if conn := g.pop('conn', None):
+        app.logger.debug('» Teardown AppContext')
+        app.logger.debug('» Connection closed')
+        conn.close()
+
+    if err is not None:
+        app.logger.error(err)
+
+
 @app.errorhandler(404)
 def page_not_found(e):
     app.logger.debug(e)
