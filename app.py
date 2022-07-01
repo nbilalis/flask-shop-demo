@@ -26,8 +26,11 @@ def get_conn():
     if 'conn' not in g:     # hasattr(g, 'conn')
         # app.logger.debug(f"» New Connection requested from endpoint '{request.endpoint}'")
         conn = sqlite3.connect(DATABASE_PATH)
-        # If `row_factory` is not set, retrieval methods return tuples.
+        # If `row_factory` is not set, retrieval methods return tuples,
+        # and you have to use indices intead of named columns.
         conn.row_factory = sqlite3.Row
+        # Alternatively, you can set your own factory function.
+        # conn.row_factory = lambda cur, row: dict((cur.description[idx][0], value) for idx, value in enumerate(row))
         g.conn = conn       # setattr(g, 'conn', conn)
 
     return g.conn
