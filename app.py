@@ -1,10 +1,19 @@
-from flask import Flask, render_template, g
-from os import environ
+from flask import Flask, render_template, g, request, abort
+from os import environ  # , listdir, path
+from pathlib import Path
 import locale
 
 from products_service import get_product, get_all_products, get_category, get_all_categories
 
 app = Flask(__name__)
+
+# Get the Database path with the help of the `os.path` module.
+# BASE_PATH = path.dirname(path.abspath(__file__))
+# DATABASE_PATH = path.join(BASE_PATH, 'data/flask-news.db')
+
+# Get the Database path with the help of the `pathlib.Path` module
+# The `/` operator is overloaded and essentially perfmors a join.
+DATABASE_PATH = Path(__file__).parent / 'data/flask-shop.db'
 
 
 @app.route('/')
