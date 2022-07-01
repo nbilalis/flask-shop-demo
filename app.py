@@ -2,6 +2,7 @@ from flask import Flask, render_template, g, request, abort
 from os import environ  # , listdir, path
 from pathlib import Path
 import locale
+import sqlite3
 
 from products_service import get_product, get_all_products, get_category, get_all_categories
 
@@ -14,6 +15,31 @@ app = Flask(__name__)
 # Get the Database path with the help of the `pathlib.Path` module
 # The `/` operator is overloaded and essentially perfmors a join.
 DATABASE_PATH = Path(__file__).parent / 'data/flask-shop.db'
+
+
+def get_conn():
+    '''
+    Get a connection to the database.
+    First, check if the connection is already open and stored in the `g` object.
+    If not, create a new connection and store there.
+    '''
+    if 'conn' not in g:     # hasattr(g, 'conn')
+        # app.logger.debug(f"» New Connection requested from endpoint '{request.endpoint}'")
+        conn = sqlite3.connect(DATABASE_PATH)
+        # If `row_factory` is not set, retrieval methods return tuples.
+        conn.row_factory = sqlite3.Row
+        g.conn = conn       # setattr(g, 'conn', conn)
+
+    return g.conn
+
+
+""" @app.before_request
+def open_connection():
+    '''
+    Executes before * every * request
+    '''
+    g.conn = sqlite3.connect(DATABASE_PATH)
+    g.conn.row_factory = sqlite3.Row """
 
 
 @app.route('/')
