@@ -4,7 +4,6 @@ from pathlib import Path
 import locale
 import sqlite3
 
-from products_service import get_product, get_all_products, get_category, get_all_categories
 
 app = Flask(__name__)
 
@@ -45,46 +44,148 @@ def open_connection():
     g.conn.row_factory = sqlite3.Row """
 
 
+@app.before_request
+def get_categories():
+    '''
+    Executes before *every* request, beacuse categories are needed for menu.
+    `g` is a global object to store stuff for a *single* request
+    '''
+
+    # Quick return if request comes from a static asset
+    if not request or request.endpoint == 'static':
+        return
+
+    # Quick return if categories are already in `g`
+    if hasattr(g, 'categories'):
+        return
+
+    cursor = get_conn().cursor()
+
+    categories = cursor.execute(
+        '''
+        SELECT id, title, parent, other
+        FROM category
+        ORDER BY parent, title
+        '''
+    ).fetchall()
+
+    cursor.close()
+
+    setattr(g, 'categories', categories)    # g.categories = categories
+
+
 @app.route('/')
 def home():
-    categories = get_all_categories()
+    cursor = get_conn().cursor()
+
+    men_random_products = cursor.execute(
+        '''
+        SELECT pr.id, pr.title, pr.description, pr.price, pr.discount_ratio, pr.stock, pr.is_hot, pr.category_id
+        FROM product pr
+        INNER JOIN category ca ON pr.category_id = ca.id
+        WHERE ca.parent = 'Men'
+        ORDER BY RANDOM() LIMIT 8
+        '''
+    ).fetchall()
+
+    women_random_products = cursor.execute(
+        '''
+        SELECT pr.id, pr.title, pr.description, pr.price, pr.discount_ratio, pr.stock, pr.is_hot, pr.category_id
+        FROM product pr
+        INNER JOIN category ca ON pr.category_id = ca.id
+        WHERE ca.parent = 'Women'
+        ORDER BY RANDOM() LIMIT 8
+        '''
+    ).fetchall()
+
+    sports_random_products = cursor.execute(
+        '''
+        SELECT pr.id, pr.title, pr.description, pr.price, pr.discount_ratio, pr.stock, pr.is_hot, pr.category_id
+        FROM product pr
+        INNER JOIN category ca ON pr.category_id = ca.id
+        WHERE ca.title = 'Sports'
+        ORDER BY RANDOM() LIMIT 8
+        '''
+    ).fetchall()
+
+    cursor.close()
 
     return render_template(
         'home.html',
-        men_category=get_category('men', categories),
-        women_category=get_category('women', categories),
-        sports_category=get_category('sports', categories),
-        men_products=get_all_products(8),
-        women_products=get_all_products(8),
-        sports_products=get_all_products(8)
+        men_products=men_random_products,
+        women_products=women_random_products,
+        sports_products=sports_random_products
     )
 
 
 @app.route('/products/<category_id>')
 def product_list(category_id):
-    category = get_category(category_id, get_all_categories())
-    products = get_all_products()
+    cursor = get_conn().cursor()
 
-    app.logger.debug(category)
-    app.logger.debug(products)
+    category = cursor.execute(
+        '''
+        SELECT title, parent
+        FROM category
+        WHERE id = ?
+        ''',
+        (category_id,)
+    ).fetchone()
+
+    if category is None:
+        abort(404)
+
+    products = cursor.execute(
+        '''
+        SELECT id, title, description, price, discount_ratio, stock, is_hot, category_id
+        FROM product
+        WHERE category_id = ?
+        ORDER BY title
+        ''',
+        (category_id,)
+    ).fetchall()
+
+    cursor.close()
+
+    # app.logger.debug(category)
+    # app.logger.debug(products)
 
     return render_template('products/list.html', category=category, products=products)
 
 
 @app.route('/products/<category_id>/<product_id>')
 def product_details(category_id, product_id):
-    category = get_category(category_id, get_all_categories())
-    product = get_product(product_id)
+    cursor = get_conn().cursor()
 
-    app.logger.debug(category)
-    app.logger.debug(product)
+    category = cursor.execute(
+        '''
+        SELECT title
+        FROM category
+        WHERE id = ?
+        ''',
+        (category_id,)
+    ).fetchone()
+
+    if category is None:
+        abort(404)
+
+    product = cursor.execute(
+        '''
+        SELECT id, title, description, price, discount_ratio, stock, is_hot
+        FROM product
+        WHERE id = ?
+        ''',
+        (product_id,)
+    ).fetchone()
+
+    if product is None:
+        abort(404)
+
+    cursor.close()
+
+    # app.logger.debug(category)
+    # app.logger.debug(product)
 
     return render_template('products/details.html', category=category, product=product)
-
-
-@app.route('/products/<product_id>/api')
-def get_product_json(product_id):
-    return get_product(product_id)
 
 
 """ @app.teardown_request
@@ -119,16 +220,6 @@ def close_connection(err):
 def page_not_found(e):
     app.logger.debug(e)
     return render_template('errors/404.html'), 404
-
-
-@app.before_request
-def store_stuff_in_g():
-    """
-    Executes before *every* request
-    g is a global object to store stuff for a *single* request
-    """
-    g.products = get_all_products()
-    g.categories = get_all_categories()
 
 
 @app.template_filter('currency')
