@@ -113,7 +113,7 @@
                       {% for product in men_products %}
                         <!-- start single product item -->
                         <li>
-                          {% with category=men_category %}
+                          {% with product=product %}
                             {% include "products/_card.html" %}
                           {% endwith %}
                         </li>
@@ -128,7 +128,7 @@
                       {% for product in women_products %}
                         <!-- start single product item -->
                         <li>
-                          {% with category=women_category %}
+                          {% with product=product %}
                             {% include "products/_card.html" %}
                           {% endwith %}
                         </li>
@@ -143,7 +143,7 @@
                       {% for product in sports_products %}
                         <!-- start single product item -->
                         <li>
-                          {% with category=sports_category, topic='shoes' %}
+                          {% with product=product, topic='shoes' %}
                             {% include "products/_card.html" %}
                           {% endwith %}
                         </li>
@@ -158,7 +158,7 @@
                       <li>
                         <figure>
                           <a class="aa-product-img" href="#">
-                            <img src="https://loremflickr.com/250/300/electronics?lock={{ '%0x' % (range(1000, 10000) | random) }}"
+                            <img src="https://placem.at/things?w=250&h=300&random={{ '%0x' % (range(1000, 10000) | random) }}"
                                  alt="polo shirt img">
                           </a>
                           <a class="aa-add-card-btn"href="#"><span class="fa fa-shopping-cart"></span>Add To Cart</a>

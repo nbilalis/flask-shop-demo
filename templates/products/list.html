@@ -2,7 +2,7 @@
 
 {% from "_image.html" import lorem_space_image %}
 
-{% block title %}{{ category.title | title }}{% endblock %}
+{% block title %}{{ category['title'] }}{% endblock %}
 
 {% block bodyClass %}productPage{% endblock %}
 
@@ -16,9 +16,10 @@
           <h2>Fashion</h2>
           <ol class="breadcrumb">
             <li>
-              <a href="index.html">Home</a>
+              <a href="{{ url_for('home') }}">Home</a>
             </li>
-            <li class="active">{{ category.title }}</li>
+            <li><a href="#">{{ category['Parent'] }}</a></li>
+            <li class="active">{{ category['title'] }}</li>
           </ol>
         </div>
       </div>
