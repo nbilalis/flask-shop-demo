@@ -137,5 +137,29 @@ def format_currency(value):
     return locale.currency(value, symbol=True, grouping=True)
 
 
+@app.cli.command('init-db')
+# @click.argument('init-db')
+def init_db():
+    '''
+    A CLI command to create the DB, running `flask init-db`,
+    by executing the scripts in the "migrations" folder
+    '''
+    migrations_path = Path(__file__).parent / '_migrations'
+    for migration in migrations_path.glob('*.sql'):
+        with app.app_context():
+            with get_conn() as conn:
+                with app.open_resource(migration, mode='r') as f:
+                    conn.executescript(f.read())
+
+    """ migrations_path = path.join(BASE_PATH, '_migrations')
+    for file in listdir(migrations_path):
+        file_path = path.join(migrations_path, file)
+        with app.app_context():
+            with get_conn() as con:
+                with app.open_resource(file_path, mode='r') as f:
+                    contents = f.read()
+                    con.cursor().executescript(contents) """
+
+
 if __name__ == '__main__':
     app.run(host='localhost', port=environ.get('SERVER_PORT', 5000), debug=True)
