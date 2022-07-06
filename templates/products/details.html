@@ -2,7 +2,7 @@
 
 {% from "_image.html" import lorem_space_url, lorem_space_image %}
 
-{% block title %}{{ product['title'] }} - {{ category['title'] }}{% endblock %}
+{% block title %}{{ product['title'] }} - {{ product['category_title'] }}{% endblock %}
 
 {% block main %}
   <!-- catg header banner section -->
@@ -91,7 +91,7 @@
                         </select>
                       </form>
                       <p class="aa-prod-category">
-                        Category: <a href="#">{{ category['title'] }}</a>
+                        Category: <a href="{{ url_for('product_list', category_id=product['category_id']) }}">{{ product['category_title'] }}</a>
                       </p>
                     </div>
                     <div class="aa-prod-view-bottom">
@@ -251,7 +251,7 @@
                                 </select>
                               </form>
                               <p class="aa-prod-category">
-                                Category: <a href="#">Polo T-Shirt</a>
+                                Category: <a href="{{ url_for('product_list', category_id=product['category_id']) }}">{{ product['category_title'] }}</a>
                               </p>
                             </div>
                             <div class="aa-prod-view-bottom">
