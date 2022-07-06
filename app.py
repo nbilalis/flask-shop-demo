@@ -84,7 +84,8 @@ def home():
         FROM product pr
         INNER JOIN category ca ON pr.category_id = ca.id
         WHERE ca.parent = 'Men'
-        ORDER BY RANDOM() LIMIT 8
+        ORDER BY RANDOM()
+        LIMIT 8
         '''
     ).fetchall()
 
@@ -94,7 +95,8 @@ def home():
         FROM product pr
         INNER JOIN category ca ON pr.category_id = ca.id
         WHERE ca.parent = 'Women'
-        ORDER BY RANDOM() LIMIT 8
+        ORDER BY RANDOM()
+        LIMIT 8
         '''
     ).fetchall()
 
@@ -104,7 +106,8 @@ def home():
         FROM product pr
         INNER JOIN category ca ON pr.category_id = ca.id
         WHERE ca.title = 'Sports'
-        ORDER BY RANDOM() LIMIT 8
+        ORDER BY RANDOM()
+        LIMIT 8
         '''
     ).fetchall()
 
@@ -126,9 +129,9 @@ def product_list(category_id):
         '''
         SELECT title, parent
         FROM category
-        WHERE id = ?
+        WHERE id = :category_id
         ''',
-        (category_id,)
+        {'category_id': category_id}
     ).fetchone()
 
     if category is None:
@@ -138,10 +141,11 @@ def product_list(category_id):
         '''
         SELECT id, title, description, price, discount_ratio, stock, is_hot, category_id
         FROM product
-        WHERE category_id = ?
+        WHERE category_id = :category_id
         ORDER BY title
+        LIMIT 12
         ''',
-        (category_id,)
+        {'category_id': category_id}
     ).fetchall()
 
     cursor.close()
@@ -156,36 +160,27 @@ def product_list(category_id):
 def product_details(category_id, product_id):
     cursor = get_conn().cursor()
 
-    category = cursor.execute(
-        '''
-        SELECT title
-        FROM category
-        WHERE id = ?
-        ''',
-        (category_id,)
-    ).fetchone()
-
-    if category is None:
-        abort(404)
-
     product = cursor.execute(
         '''
-        SELECT id, title, description, price, discount_ratio, stock, is_hot
-        FROM product
-        WHERE id = ?
+        SELECT
+            pr.id, pr.title, pr.description, pr.price, pr.discount_ratio, pr.stock, pr.is_hot, pr.category_id,
+            ca.title AS category_title, ca.parent AS category_parent
+        FROM product pr
+        INNER JOIN category ca ON pr.category_id = ca.id
+        WHERE pr.id = :product_id AND ca.id = :category_id
         ''',
-        (product_id,)
+        {'product_id': product_id, 'category_id': category_id}
     ).fetchone()
+
+    cursor.close()
 
     if product is None:
         abort(404)
 
-    cursor.close()
-
     # app.logger.debug(category)
     # app.logger.debug(product)
 
-    return render_template('products/details.html', category=category, product=product)
+    return render_template('products/details.html', product=product)
 
 
 """ @app.teardown_request
