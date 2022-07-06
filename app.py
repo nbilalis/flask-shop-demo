@@ -4,6 +4,8 @@ from pathlib import Path
 import locale
 import sqlite3
 
+from products_service import get_products
+
 
 app = Flask(__name__)
 
@@ -231,11 +233,37 @@ def init_db():
     by executing the scripts in the "migrations" folder
     '''
     migrations_path = Path(__file__).parent / '_migrations'
-    for migration in migrations_path.glob('*.sql'):
-        with app.app_context():
+    with app.app_context():
+        try:
             with get_conn() as conn:
-                with app.open_resource(migration, mode='r') as f:
-                    conn.executescript(f.read())
+                for migration in migrations_path.glob('*.sql'):
+                    with app.open_resource(migration, mode='r') as f:
+                        conn.executescript(f.read())
+
+                cursor = conn.cursor()
+                categories = cursor.execute(
+                    '''
+                    SELECT *
+                    FROM category
+                    '''
+                ).fetchall()
+
+                for category in categories:
+                    products = list(get_products(category))
+                    cursor.executemany(
+                        f'''
+                        INSERT INTO [product] (title, description, price, discount_ratio, stock, is_hot, category_id)
+                        VALUES (:title, :description, :price, :discount_ratio, :stock, :is_hot, '{category['id']}')
+                        ''',
+                        products
+                    )
+
+                cursor.close()
+                conn.commit()
+        except Exception as err:
+            app.logger.error(err)
+        finally:
+            conn.close()
 
     """ migrations_path = path.join(BASE_PATH, '_migrations')
     for file in listdir(migrations_path):
