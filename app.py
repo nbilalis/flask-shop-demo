@@ -182,7 +182,64 @@ def product_details(category_id, product_id):
     # app.logger.debug(category)
     # app.logger.debug(product)
 
-    return render_template('products/details.html', product=product)
+
+
+@app.post('/shopping-cart')
+def upsert_to_cart():
+    product_id = request.json.get('product_id', None)
+    customer_id = 1
+
+    if id is not None:
+        try:
+            with get_conn() as conn:  # won't close the connection
+                cursor = conn.cursor()
+
+                product = cursor.execute(
+                    '''
+                    SELECT title
+                    FROM product
+                    WHERE id = :product_id
+                    ''',
+                    {'product_id': product_id}
+                ).fetchone()
+
+                item = cursor.execute(
+                    '''
+                    SELECT id
+                    FROM shopping_cart_item
+                    WHERE product_id = :product_id AND customer_id = :customer_id
+                    ''',
+                    {'product_id': product_id, 'customer_id': customer_id}
+                ).fetchone()
+
+                cursor.close()
+
+                if item is None:
+                    conn.execute(
+                        '''
+                        INSERT INTO shopping_cart_item (product_id, customer_id, quantity)
+                        VALUES (:product_id, :customer_id, :quantity)
+                        ''',
+                        {'product_id': product_id, 'customer_id': customer_id, 'quantity': 1}
+                    )
+                else:
+                    conn.execute(
+                        '''
+                        UPDATE shopping_cart_item
+                        SET quantity = quantity + 1
+                        WHERE product_id = :product_id AND customer_id = :customer_id
+                        ''',
+                        {'product_id': product_id, 'customer_id': customer_id}
+                    )
+        except Exception as err:
+            app.logger.error(err)
+            return {'message': err}, 500
+        finally:
+            conn.close()
+    else:
+        return {'message': 'No product id provided'}, 422
+
+    return {'message': f'{product["title"]} was successfully added.'}, 200
 
 
 """ @app.teardown_request
