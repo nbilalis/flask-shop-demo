@@ -4,7 +4,9 @@
   <a class="aa-product-img" href="{{ url_for('product_details', category_id=product['category_id'], product_id=product['id']) }}">
     {{ lorem_space_image(250, 300, topic if topic else 'fashion', product['title']) }}
   </a>
-  <a class="aa-add-card-btn"href="#"><span class="fa fa-shopping-cart"></span>Add To Cart</a>
+  <a class="aa-add-card-btn add-to-cart" href="{{ url_for('upsert_to_cart') }}" data-product-id="{{ product['id'] }}">
+    <span class="fa fa-shopping-cart"></span>Add To Cart
+  </a>
   <figcaption>
     <h4 class="aa-product-title">
       <a href="{{ url_for('product_details', category_id=product['category_id'], product_id=product['id']) }}">{{ product['title'] }}</a>
@@ -30,6 +32,10 @@
      data-target="#quick-view-modal"><span class="fa fa-search"></span></a>
 </div>
 <!-- product badge -->
-{% if product['is_sale'] %}<span class="aa-badge aa-sale" href="#">SALE!</span>{% endif %}
-{% if product['is_sold_out'] %}<span class="aa-badge aa-sold-out" href="#">Sold out!</span>{% endif %}
-{% if product['is_hot'] %}<span class="aa-badge aa-hot" href="#">HOT!!!</span>{% endif %}
+{% if product['discount_ratio'] > 0 %}
+  <span class="aa-badge aa-sale" href="#">SALE!</span>
+{% elif product['stock'] == 0 %}
+  <span class="aa-badge aa-sold-out" href="#">Sold Out!</span>
+{% elif product['is_hot'] %}
+  <span class="aa-badge aa-hot" href="#">HOT!</span>
+{% endif %}
